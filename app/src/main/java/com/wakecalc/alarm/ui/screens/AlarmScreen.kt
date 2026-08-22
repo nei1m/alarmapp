@@ -147,7 +147,7 @@ fun AlarmScreen(modifier: Modifier, vm: MainViewModel, onTest: () -> Unit) {
                 Text("Difficulty: ${difficultyLabel(vm.difficulty)}", fontSize = 13.sp)
                 Slider(
                     value = vm.difficulty.toFloat(),
-                    onValueChange = { vm.setDifficulty(it.toInt()) },
+                    onValueChange = { vm.updateDifficulty(it.toInt()) },
                     valueRange = 0f..3f, steps = 2
                 )
             }

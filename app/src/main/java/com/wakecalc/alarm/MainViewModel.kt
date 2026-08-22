@@ -64,5 +64,5 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         prefs.categories = s; categories = s
     }
 
-    fun setDifficulty(v: Int) { prefs.difficulty = v; difficulty = v }
+    fun updateDifficulty(v: Int) { prefs.difficulty = v; difficulty = v }
 }
