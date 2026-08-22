@@ -38,6 +38,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     var soundName by mutableStateOf(prefs.soundName); private set
     var categories by mutableStateOf(prefs.categories); private set
     var difficulty by mutableStateOf(prefs.difficulty); private set
+    var volume by mutableStateOf(prefs.volume); private set
+    var vibrate by mutableStateOf(prefs.vibrate); private set
+    var gradualVolume by mutableStateOf(prefs.gradualVolume); private set
+    var label by mutableStateOf(prefs.label); private set
 
     private fun resync() = AlarmScheduler.reschedule(getApplication())
 
@@ -65,4 +69,19 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun updateDifficulty(v: Int) { prefs.difficulty = v; difficulty = v }
+
+    fun updateVolume(v: Int) { prefs.volume = v; volume = v }
+
+    fun updateVibrate(v: Boolean) { prefs.vibrate = v; vibrate = v }
+
+    fun updateGradualVolume(v: Boolean) { prefs.gradualVolume = v; gradualVolume = v }
+
+    fun updateLabel(v: String) { prefs.label = v; label = v }
+
+    /** Millis until the next scheduled alarm, or null if disabled/none. */
+    fun millisUntilNextAlarm(): Long? {
+        if (!alarmEnabled) return null
+        val next = AlarmScheduler.nextTriggerMillis(prefs) ?: return null
+        return (next - System.currentTimeMillis()).coerceAtLeast(0L)
+    }
 }

@@ -24,6 +24,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.FilterChip
@@ -31,6 +32,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -79,6 +81,15 @@ fun AlarmScreen(modifier: Modifier, vm: MainViewModel, onTest: () -> Unit) {
         }
         Spacer(Modifier.height(8.dp))
 
+        OutlinedTextField(
+            value = vm.label,
+            onValueChange = { vm.updateLabel(it) },
+            label = { Text("Label") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(Modifier.height(8.dp))
+
         // time stepper
         Row(
             Modifier.fillMaxWidth(),
@@ -94,6 +105,13 @@ fun AlarmScreen(modifier: Modifier, vm: MainViewModel, onTest: () -> Unit) {
             modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+        vm.millisUntilNextAlarm()?.let {
+            Text(
+                "Rings in ${formatCountdown(it)}",
+                modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.primary, fontSize = 13.sp
+            )
+        }
         Spacer(Modifier.height(12.dp))
 
         // days
@@ -126,6 +144,35 @@ fun AlarmScreen(modifier: Modifier, vm: MainViewModel, onTest: () -> Unit) {
                     Text(vm.soundName, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 OutlinedButton(onClick = { picker.launch(arrayOf("audio/*")) }) { Text("Pick MP3") }
+            }
+        }
+        Spacer(Modifier.height(10.dp))
+
+        Card(Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(14.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Filled.VolumeUp, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Volume", modifier = Modifier.weight(1f), fontSize = 14.sp)
+                    Text("${vm.volume}%", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp)
+                }
+                Slider(
+                    value = vm.volume.toFloat(),
+                    onValueChange = { vm.updateVolume(it.toInt()) },
+                    valueRange = 0f..100f
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Gradually increase volume", modifier = Modifier.weight(1f), fontSize = 13.sp)
+                    Switch(checked = vm.gradualVolume, onCheckedChange = { vm.updateGradualVolume(it) })
+                }
+            }
+        }
+        Spacer(Modifier.height(10.dp))
+
+        Card(Modifier.fillMaxWidth()) {
+            Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text("Vibrate", modifier = Modifier.weight(1f), fontSize = 14.sp)
+                Switch(checked = vm.vibrate, onCheckedChange = { vm.updateVibrate(it) })
             }
         }
         Spacer(Modifier.height(10.dp))
@@ -183,6 +230,17 @@ private fun Stepper(label: String, value: Int, min: Int, max: Int, onChange: (In
 
 private fun difficultyLabel(level: Int) = when (level) {
     0 -> "Easy"; 1 -> "Normal"; 2 -> "Hard"; else -> "Brutal"
+}
+
+private fun formatCountdown(millis: Long): String {
+    val totalMinutes = millis / 60000
+    val h = totalMinutes / 60
+    val m = totalMinutes % 60
+    return when {
+        h > 0 -> "${h}h ${m}m"
+        m > 0 -> "${m}m"
+        else -> "under a minute"
+    }
 }
 
 private fun queryName(context: android.content.Context, uri: android.net.Uri): String? =

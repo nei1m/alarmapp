@@ -32,6 +32,8 @@ class AlarmService : Service() {
     private var player: MediaPlayer? = null
     private var vibrator: Vibrator? = null
     private var wakeLock: PowerManager.WakeLock? = null
+    private val handler = android.os.Handler(android.os.Looper.getMainLooper())
+    private var rampRunnable: Runnable? = null
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -74,8 +76,9 @@ class AlarmService : Service() {
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
+        val label = Prefs(this).label
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Solve to silence the alarm")
+            .setContentTitle(if (label.isBlank()) "Solve to silence the alarm" else label)
             .setContentText("A Calc problem is waiting — no snooze.")
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setPriority(NotificationCompat.PRIORITY_MAX)
@@ -125,9 +128,37 @@ class AlarmService : Service() {
                 }
             }
         }
+        applyVolume(prefs)
+    }
+
+    /** Sets the player volume from prefs, optionally fading it up over ~30s. */
+    private fun applyVolume(prefs: Prefs) {
+        val target = (prefs.volume / 100f).coerceIn(0f, 1f)
+        val p = player ?: return
+        rampRunnable?.let { handler.removeCallbacks(it) }
+        if (!prefs.gradualVolume) {
+            p.setVolume(target, target)
+            return
+        }
+        val stepMs = 700L
+        val steps = 43 // ~30 seconds
+        p.setVolume(0f, 0f)
+        var i = 0
+        val r = object : Runnable {
+            override fun run() {
+                i++
+                val frac = (i.toFloat() / steps).coerceIn(0f, 1f)
+                val v = target * frac
+                player?.setVolume(v, v)
+                if (frac < 1f) handler.postDelayed(this, stepMs)
+            }
+        }
+        rampRunnable = r
+        handler.postDelayed(r, stepMs)
     }
 
     private fun startVibration() {
+        if (!Prefs(this).vibrate) return
         vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         val pattern = longArrayOf(0, 600, 400)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -148,6 +179,8 @@ class AlarmService : Service() {
     }
 
     private fun stopEverything() {
+        rampRunnable?.let { handler.removeCallbacks(it) }
+        rampRunnable = null
         runCatching { player?.stop(); player?.release() }
         player = null
         runCatching { vibrator?.cancel() }

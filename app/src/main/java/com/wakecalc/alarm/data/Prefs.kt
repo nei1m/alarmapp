@@ -53,6 +53,24 @@ class Prefs(context: Context) {
         get() = sp.getInt("difficulty", 1)
         set(v) = sp.edit().putInt("difficulty", v.coerceIn(0, 3)).apply()
 
+    /** Alarm volume as a percentage 0..100. */
+    var volume: Int
+        get() = sp.getInt("volume", 100)
+        set(v) = sp.edit().putInt("volume", v.coerceIn(0, 100)).apply()
+
+    var vibrate: Boolean
+        get() = sp.getBoolean("vibrate", true)
+        set(v) = sp.edit().putBoolean("vibrate", v).apply()
+
+    /** Fade the volume up over the first ~30s instead of blasting instantly. */
+    var gradualVolume: Boolean
+        get() = sp.getBoolean("gradual_volume", true)
+        set(v) = sp.edit().putBoolean("gradual_volume", v).apply()
+
+    var label: String
+        get() = sp.getString("label", "Wake up")!!
+        set(v) = sp.edit().putString("label", v).apply()
+
     var lockdownEnabled: Boolean
         get() = sp.getBoolean("lockdown", false)
         set(v) = sp.edit().putBoolean("lockdown", v).apply()
