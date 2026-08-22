@@ -1,6 +1,7 @@
 package com.wakecalc.alarm.widget
 
 import android.content.Context
+import android.content.Intent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -43,7 +44,12 @@ class TrackerWidget : GlanceAppWidget() {
                     .background(Color(0xFF211F26))
                     .cornerRadius(20.dp)
                     .padding(14.dp)
-                    .clickable(actionStartActivity<MainActivity>())
+                    .clickable(
+                        actionStartActivity(
+                            Intent(context, MainActivity::class.java)
+                                .apply { flags = Intent.FLAG_ACTIVITY_NEW_TASK }
+                        )
+                    )
             ) {
                 Text(
                     "THIS WEEK · 🔥 ${stats.streak}",

@@ -1,6 +1,7 @@
 package com.wakecalc.alarm.widget
 
 import android.content.Context
+import android.content.Intent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -33,7 +34,12 @@ class StreakWidget : GlanceAppWidget() {
                     .background(Color(0xFF381E72))
                     .cornerRadius(20.dp)
                     .padding(16.dp)
-                    .clickable(actionStartActivity<MainActivity>()),
+                    .clickable(
+                        actionStartActivity(
+                            Intent(context, MainActivity::class.java)
+                                .apply { flags = Intent.FLAG_ACTIVITY_NEW_TASK }
+                        )
+                    ),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalAlignment = Alignment.Start
             ) {
